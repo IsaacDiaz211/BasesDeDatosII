@@ -1,0 +1,35 @@
+1) i. El tamaño de la relación Clientes (Nodo 1) es de: 123 bytes * 5000 registros = 615000 bytes
+   ii. El tamaño de la relación Sucursales (Nodo 2) es de: 71 bytes * 100 registros = 7100 bytes
+
+2) La consulta requerida consiste en obtener, para cada cliente, su Apellido y Nombre junto con el Nombre de la Sucursal en la que adquiere los libros.
+
+i. Nodo 3 como resultado:
+- Opción 1: Enviar ambas tablas completas (Clientes y Sucursales) a Nodo 3.
+Enviar Clientes (Nodo 1 → Nodo 3) y Sucursales (Nodo 2 → Nodo 3) completos; Tráfico: 615.000 + 7.100 = 622.100 bytes
+
+- Opción 2: Trasladar Clientes a Nodo 2, procesar el join y luego enviar el resultado a Nodo 3.
+Trasladar Clientes (Nodo 1 → Nodo 2), hacer JOIN en Nodo 2 y luego enviar resultado a Nodo 3; N1 → N2: 615.000 bytes
+Resultado (300.000 bytes) → N3; Tráfico total: 915.000 bytes
+
+- Opción 3: Trasladar Sucursales a Nodo 1, procesar el join y luego enviar el resultado a Nodo 3.
+Trasladar Sucursales (Nodo 2 → Nodo 1), hacer JOIN en Nodo 1 y luego enviar resultado a Nodo 3; N2 → N1: 7.100 bytes
+Resultado (300.000 bytes) → N3; Tráfico total: 307.100 bytes
+
+Comparando el volumen de datos transferidos, la opción más eficiente es la tercera, ya que solo requiere mover 7.100 bytes de Sucursales hacia Nodo 1 y posteriormente enviar el resultado final (300.000 bytes) a Nodo 3, dando un total de 307.100 bytes.
+
+ii. Nodo 2 como nodo resultado:
+- Opción 1: Enviar Clientes a Nodo 2 y procesar JOIN
+N1 → N2: 615.000 bytes; No hay que mover el resultado porque queda en N2; Total: 615.000 bytes
+
+- Opción 2: Enviar Sucursales a Nodo 1, hacer JOIN y devolver resultado a Nodo 2
+N2 → N1: 7.100 bytes; Resultado (300.000 bytes) → N2; Total: 307.100 bytes
+
+La segunda opción resulta más conveniente, ya que implica transferir un total de 307.100 bytes, frente a los 615.000 bytes que supondría mover todos los registros de Clientes a Nodo 2.
+
+iii. Usando semi join para Nodo 2
+Para optimizar la consulta en Nodo 2, aplicamos el operador de semi join, transmitiendo únicamente los atributos necesarios en lugar de las tablas completas.
+Desde Nodo 2 se envía al Nodo 1 la columna Nro. de Sucursal (100 tuplas × 4 bytes = 400 bytes).
+En Nodo 1 se filtran los clientes y se proyectan solo los atributos relevantes: Nro. de Sucursal (4 bytes) y Apellido y Nombres (30 bytes). Para 5000 tuplas se obtienen 170.000 bytes, que se envían a Nodo 2.
+El total transferido es: 400 + 170.000 = 170.400 bytes
+
+De esta manera, la semi reunión reduce significativamente el tráfico de red respecto a la estrategia del ítem II (307.100 bytes), ya que evita transferir la relación completa de Clientes y limita la comunicación a los atributos estrictamente necesarios.
