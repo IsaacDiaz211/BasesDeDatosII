@@ -1,0 +1,55 @@
+-- Definición del tipo Empleado
+CREATE TYPE Empleado AS (
+    Dni CHAR(8),
+    Apeynom VARCHAR(50),
+    Anio_Ingreso INTEGER,
+    Direccion VARCHAR(40),
+    Cargo VARCHAR(15),
+    Basico DECIMAL(10,2),
+    Titulo DECIMAL(10,2),
+    Escolaridad DECIMAL(10,2),
+    Aporte_Jubilatorio DECIMAL(10,2),
+    METHOD Antiguedad_laboral() RETURNS INTEGER,
+    METHOD Sueldo() RETURNS DECIMAL(10,2)
+) NOT FINAL;
+
+-- Implementación de los métodos
+-- Método: calcula antigüedad laboral
+CREATE METHOD Antiguedad_laboral()
+FOR Empleado
+RETURNS INTEGER
+BEGIN ATOMIC
+    RETURN (EXTRACT(YEAR FROM CURRENT_DATE) - SELF.Anio_Ingreso);
+END;
+
+-- Método: calcula sueldo total
+CREATE METHOD Sueldo()
+FOR Empleado
+RETURNS DECIMAL(10,2)
+BEGIN ATOMIC
+    RETURN (SELF.Basico + SELF.Titulo + SELF.Escolaridad - SELF.Aporte_Jubilatorio);
+END;
+
+-- Ejemplo
+-- Crear tabla que almacene empleados
+CREATE TABLE TablaEmpleados OF Empleado;
+
+-- Insertar un empleado de prueba
+INSERT INTO TablaEmpleados VALUES (
+    '12345678', -- Dni
+    'Gómez Juan', -- Apeynom
+    2015, -- Año de ingreso
+    '25 de Mayo 123', -- Dirección
+    'Analista', -- Cargo
+    500000.00, -- Básico
+    20000.00, -- Adicional por título
+    15000.00, -- Escolaridad
+    30000.00 -- Aporte jubilatorio
+);
+
+-- Consultar antigüedad y sueldo usando los métodos
+SELECT e.Dni,
+       e.Apeynom,
+       e.Antiguedad_laboral() AS Antiguedad,
+       e.Sueldo() AS Sueldo_Total
+FROM TablaEmpleados e;
